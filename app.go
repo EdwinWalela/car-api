@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"net/http"
 	"time"
 
@@ -11,15 +11,21 @@ import (
 var PORT = "8000"
 
 type Car struct {
-	id       uint64
-	category string
-	make     string
-	model    string
-	HP       uint64
-	year     uint64
+	Id       uint64 `json:"id"`
+	Category string `json:"category"`
+	Make     string `json:"make"`
+	Model    string `json:"model"`
+	HP       uint16 `json:"HP`
+	Year     uint16 `json:"year"`
 }
 
-var cars = []Car{
+type Response struct {
+	Status string `json:"status"`
+	Cars   []Car  `json:"cars"`
+	Count  int    `json:"count"`
+}
+
+var AllCars = []Car{
 	{1, "Sedan", "Toyota", "Vitz", 150, 2006},
 	{2, "Sedan", "Mercedes-Benz", "s550", 740, 2018},
 	{3, "SUV", "Lamborghini", "Urus", 650, 2019},
@@ -30,7 +36,16 @@ var cars = []Car{
 	{8, "Sedan", "Bentley", "Continental GT", 552, 2018}}
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-
+	// Create Response Object
+	result := &Response{
+		Status: "200",
+		Count:  len(AllCars),
+		Cars:   AllCars,
+	}
+	// Encode response to JSON
+	res, _ := json.Marshal(result)
+	// Send response
+	w.Write([]byte(res))
 }
 
 func IdHandler(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +74,6 @@ func main() {
 		if err := srv.ListenAndServe(); err != nil {
 			panic(err)
 		}
-		fmt.Println("Listening to requests on port:", PORT)
 	}()
 
 }
