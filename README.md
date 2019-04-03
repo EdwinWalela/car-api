@@ -44,5 +44,21 @@ Sample Response
 ### GET /cars/:id
 Retrieve car by id
 
+Sample Response
+
+```JSON
+{
+    "status": "200",
+    "Car": {
+        "id": 1,
+        "category": "Sedan",
+        "make": "Toyota",
+        "model": "Vitz",
+        "HP": 150,
+        "year": 2006
+    }
+}
+```
+
 ### GET /cars/category/:category
 Retrieve cars by category (sedan or SUV)

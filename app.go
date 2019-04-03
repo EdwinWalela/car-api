@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -19,10 +20,15 @@ type Car struct {
 	Year     uint16 `json:"year"`
 }
 
-type Response struct {
+type MultiResponse struct {
 	Status string `json:"status"`
-	Cars   []Car  `json:"cars"`
+	Cars   []Car  `json:"cars",omitempty`
 	Count  int    `json:"count"`
+}
+
+type SingleResponse struct {
+	Status string `json:"status"`
+	Car    Car    `json:"car,omitempty`
 }
 
 var AllCars = []Car{
@@ -35,9 +41,9 @@ var AllCars = []Car{
 	{7, "Coupe", "Buggati", "Chiron", 1500, 2018},
 	{8, "Sedan", "Bentley", "Continental GT", 552, 2018}}
 
-func IndexHandler(w http.ResponseWriter, r *http.Request) {
+func indexHandler(w http.ResponseWriter, r *http.Request) {
 	// Create Response Object
-	result := &Response{
+	result := &MultiResponse{
 		Status: "200",
 		Count:  len(AllCars),
 		Cars:   AllCars,
@@ -48,19 +54,40 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(res))
 }
 
-func IdHandler(w http.ResponseWriter, r *http.Request) {
-
+func IndexOf(s []Car, v uint64) bool {
+	for _, e := range s {
+		if e.Id == v {
+			return true
+		}
+	}
+	return false
 }
 
-func CategoryHandler(w http.ResponseWriter, r *http.Request) {
+func idHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.Atoi(vars["id"])
+	result := &SingleResponse{}
+
+	if IndexOf(AllCars, uint64(id)) {
+		result.Status = "200"
+		result.Car = AllCars[id-1]
+	} else {
+		result.Status = "404"
+	}
+	res, _ := json.Marshal(result)
+
+	w.Write([]byte(res))
+}
+
+func categoryHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", IndexHandler)
-	r.HandleFunc("cars/{id}", IdHandler)
-	r.HandleFunc("cars/category/{category}", CategoryHandler)
+	r.HandleFunc("/cars", indexHandler)
+	r.HandleFunc("/cars/{id}", idHandler)
+	r.HandleFunc("/cars/category/{category}", categoryHandler)
 
 	srv := http.Server{
 		Addr: "0.0.0.0:" + PORT,
